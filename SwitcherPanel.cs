@@ -40,7 +40,7 @@ using BMDSwitcherAPI;
 
 namespace SwitcherPanelCSharp
 {
-    public partial class SwitcherPanel : Form
+    public partial class TallyReader : Form
     {
         private IBMDSwitcherDiscovery m_switcherDiscovery;
         private IBMDSwitcher m_switcher;
@@ -49,12 +49,14 @@ namespace SwitcherPanelCSharp
         private SwitcherMonitor m_switcherMonitor;
         private MixEffectBlockMonitor m_mixEffectBlockMonitor;
 
-        private bool m_moveSliderDownwards = false;
-        private bool m_currentTransitionReachedHalfway = false;
+        private bool m_moveSliderDownwards = false; // Possibly surplus
+        private bool m_currentTransitionReachedHalfway = false; // Possibly surplus
 
         private List<InputMonitor> m_inputMonitors = new List<InputMonitor>();
 
-        public SwitcherPanel()
+        private const int TALLY_CHANNEL_COUNT = 6; //Sam addition
+
+        public TallyReader()
         {
             InitializeComponent();
 
@@ -68,10 +70,10 @@ namespace SwitcherPanelCSharp
 
             m_mixEffectBlockMonitor = new MixEffectBlockMonitor();
             m_mixEffectBlockMonitor.ProgramInputChanged += new SwitcherEventHandler((s, a) => this.Invoke((Action)(() => UpdateProgramButtonSelection())));
-            m_mixEffectBlockMonitor.PreviewInputChanged += new SwitcherEventHandler((s, a) => this.Invoke((Action)(() => UpdatePreviewButtonSelection())));
-            m_mixEffectBlockMonitor.TransitionFramesRemainingChanged += new SwitcherEventHandler((s, a) => this.Invoke((Action)(() => UpdateTransitionFramesRemaining())));
-            m_mixEffectBlockMonitor.TransitionPositionChanged += new SwitcherEventHandler((s, a) => this.Invoke((Action)(() => UpdateSliderPosition())));
-            m_mixEffectBlockMonitor.InTransitionChanged += new SwitcherEventHandler((s, a) => this.Invoke((Action)(() => OnInTransitionChanged())));
+            m_mixEffectBlockMonitor.PreviewInputChanged += new SwitcherEventHandler((s, a) => this.Invoke((Action)(() => UpdatePreviewButtonSelection()))); // Pos sur
+            m_mixEffectBlockMonitor.TransitionFramesRemainingChanged += new SwitcherEventHandler((s, a) => this.Invoke((Action)(() => UpdateTransitionFramesRemaining()))); // Pos sur
+            m_mixEffectBlockMonitor.TransitionPositionChanged += new SwitcherEventHandler((s, a) => this.Invoke((Action)(() => UpdateProgramButtonSelection()))); // Changed action from updating slider position
+            m_mixEffectBlockMonitor.InTransitionChanged += new SwitcherEventHandler((s, a) => this.Invoke((Action)(() => OnInTransitionChanged()))); // Pos sur
 
             m_switcherDiscovery = new CBMDSwitcherDiscovery();
             if (m_switcherDiscovery == null)
@@ -83,10 +85,6 @@ namespace SwitcherPanelCSharp
             SwitcherDisconnected();		// start with switcher disconnected
         }
 
-        private void OnInputLongNameChanged(object sender, object args)
-        {
-            this.Invoke((Action)(() => UpdatePopupItems()));
-        }
 
         private void SwitcherConnected()
         {
